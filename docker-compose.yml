@@ -1,0 +1,23 @@
+version: "3.8"
+services:
+  api_postgres:
+    container_name: api_postgres
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    env_file:
+      - docker.env
+
+  pg_admin:
+    container_name: pg_admin
+    image: dpage/pgadmin4
+    ports:
+      - "8080:80"
+    volumes:
+      - /data/pgadmin:/root/.pgadmin
+    env_file:
+      - docker.env
