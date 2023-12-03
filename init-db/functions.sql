@@ -37,6 +37,11 @@ declare
 	res_id uuid;
 begin
 	INSERT into challenge (user_id, name, description, start_date, end_date) values($1, $2, $3, $4, $5) returning id INTO res_id;
+  INSERT into challenge_day(challenge_id, status, date) VALUES (res_id, 4, start_date);
+
+  if end_date IS NOT NULL then
+    INSERT into challenge_day(challenge_id, status, date) VALUES (res_id, 4, end_date);;
+  end if;
 	return res_id;
 end; 
 
@@ -54,7 +59,7 @@ begin
     SELECT c.id, c.status, c.name, c.description, c.start_date, c.end_date,
     json_agg(json_build_object(
       'status', cd.status, 
-      'date', cd.date)
+      'date', cd.date) ORDER BY cd.date DESC
     ) AS days
     FROM challenge c JOIN challenge_day cd ON c.id = cd.challenge_id
     GROUP BY c.id

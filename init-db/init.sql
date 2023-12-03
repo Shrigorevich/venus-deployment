@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS challenge (
 
 CREATE TABLE IF NOT EXISTS challenge_day (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  challenge_id uuid references challenge (id) ON UPDATE CASCADE NOT NULL,
+  challenge_id uuid references challenge (id) ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
   status INTEGER NOT NULL,
   date DATE NOT NULL,
   UNIQUE (challenge_id, date)
