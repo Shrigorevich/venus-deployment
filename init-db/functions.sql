@@ -22,7 +22,7 @@ CREATE TYPE purchase_type AS (
   currency VARCHAR(3),
   description VARCHAR (255),
   tag VARCHAR(100)
-)
+);
 
 -- CREATE NEW CHALLENGE FOR USER
 CREATE OR REPLACE FUNCTION create_challenge(
