@@ -7,13 +7,18 @@ serve:
     base_url: http://127.0.0.1:4433/
     cors:
       enabled: true
+      allowed_origins:
+        - http://*:3000
+        - http://127.0.0.1:3000
+        - http://host.docker.local:3000
   admin:
     base_url: http://kratos:4434/
 
 selfservice:
-  default_browser_return_url: http://127.0.0.1:4455/
+  default_browser_return_url: http://127.0.0.1:3000
   allowed_return_urls:
     - http://127.0.0.1:4455
+    - http://127.0.0.1:3000
 
   methods:
     password:
