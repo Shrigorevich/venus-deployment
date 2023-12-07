@@ -1,29 +1,3 @@
-CREATE TYPE ch_type AS (
-	id uuid, 
-	status int,
-	name varchar(144),
-	description varchar(255),
-	startdate DATE,
-	enddate DATE,
-	days JSON
-);
-
-CREATE TYPE purch_tag_type AS (
-  id INT,
-  userid VARCHAR(100),
-  name VARCHAR(100)
-);
-
-CREATE TYPE purchase_type AS (
-  id uuid,
-  userid VARCHAR (100),
-  name VARCHAR (100),
-  price DECIMAL, 
-  currency VARCHAR(3),
-  description VARCHAR (255),
-  tag VARCHAR(100)
-);
-
 -- CREATE NEW CHALLENGE FOR USER
 CREATE OR REPLACE FUNCTION create_challenge(
 	user_id VARCHAR(100),
@@ -40,7 +14,7 @@ begin
   INSERT into challenge_day(challenge_id, status, date) VALUES (res_id, 4, start_date);
 
   if end_date IS NOT NULL then
-    INSERT into challenge_day(challenge_id, status, date) VALUES (res_id, 4, end_date);;
+    INSERT into challenge_day(challenge_id, status, date) VALUES (res_id, 4, end_date);
   end if;
 	return res_id;
 end; 

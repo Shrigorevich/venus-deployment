@@ -34,3 +34,29 @@ CREATE TABLE IF NOT EXISTS purchase (
   currency VARCHAR(3)
 );
 
+CREATE TYPE ch_type AS (
+	id uuid, 
+	status int,
+	name varchar(144),
+	description varchar(255),
+	startdate DATE,
+	enddate DATE,
+	days JSON
+);
+
+CREATE TYPE purch_tag_type AS (
+  id INT,
+  userid VARCHAR(100),
+  name VARCHAR(100)
+);
+
+CREATE TYPE purchase_type AS (
+  id uuid,
+  userid VARCHAR (100),
+  name VARCHAR (100),
+  price DECIMAL, 
+  currency VARCHAR(3),
+  description VARCHAR (255),
+  tag VARCHAR(100)
+);
+
