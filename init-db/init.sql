@@ -44,6 +44,12 @@ CREATE TYPE ch_type AS (
 	days JSON
 );
 
+CREATE TYPE ch_day_type AS (
+  id uuid, 
+  status int,
+  date DATE
+);
+
 CREATE TYPE purch_tag_type AS (
   id INT,
   userid VARCHAR(100),

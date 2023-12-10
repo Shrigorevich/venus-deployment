@@ -44,6 +44,23 @@ begin
 end; 
 $$ LANGUAGE 'plpgsql';
 
+-- ADD CHALLENGE_DAY 
+CREATE OR REPLACE FUNCTION add_challenge_day(
+	challenge_id VARCHAR(100),
+  state INT, 
+  date DATE
+) returns ch_day_type AS $$
+
+declare
+	res ch_day_type;
+begin
+  INSERT into challenge_day(challenge_id, status, date) VALUES (challenge_id, state, date) 
+  returining id, status, date into res;
+	return res;
+end; 
+
+$$ LANGUAGE 'plpgsql';
+
 -- ADD NEW PURCHASE_TAG FOR USER
 CREATE OR REPLACE FUNCTION create_purchase_tag(
   user_id VARCHAR(100),
