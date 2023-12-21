@@ -64,7 +64,7 @@ $$ LANGUAGE 'plpgsql';
 
 
 -- ADD NEW PURCHASE_TAG FOR USER
-CREATE OR REPLACE FUNCTION create_purchase_tag(
+CREATE OR REPLACE FUNCTION create_user_tag(
   user_id VARCHAR(100),
   name VARCHAR (100)
 ) returns purch_tag_type AS $$
@@ -72,7 +72,7 @@ CREATE OR REPLACE FUNCTION create_purchase_tag(
 declare
   res purch_tag_type;
 begin
-  INSERT INTO purchase_tag as pt (user_id, name) VALUES ($1, $2) returning pt.id, pt.name into res;
+  INSERT INTO user_tag as ut (user_id, name) VALUES ($1, $2) returning ut.id, ut.name into res;
   return res;
 end;
 $$ LANGUAGE 'plpgsql';
@@ -83,15 +83,14 @@ CREATE OR REPLACE FUNCTION create_purchase(
  	name VARCHAR (100),
 	price DECIMAL,
 	currency VARCHAR (3),
-	description VARCHAR (255) default null,
-	tag_id INTEGER default null
+	description VARCHAR (255) default null
 ) returns purchase_type AS $$
 
 declare
   res purchase_type;
 begin
 	WITH rows AS (
-		INSERT INTO purchase AS p (user_id, name, price, currency, description, tag_id) VALUES ($1, $2, $3, $4, $5, $6) 
+		INSERT INTO purchase AS p (user_id, name, price, currency, description) VALUES ($1, $2, $3, $4, $5, $6) 
 		returning *
 	)
 	SELECT r.id, r.user_id as userid, r.name, r.price, r.currency, r.description, pt.name as tag FROM rows r JOIN purchase_tag pt ON pt.id = r.tag_id INTO res;
@@ -108,9 +107,16 @@ declare
   res purchase_type;
 begin
 	for res in
-		SELECT p.id, p.user_id as userid, p.name, p.price, p.currency, p.description, pt.name as tag 
-		FROM purchase p JOIN purchase_tag pt ON pt.id = p.tag_id 
-		WHERE p.user_id = $1
+		SELECT p.id, p.name, p.price, p.currency, p.description,
+      json_agg(json_build_object(
+        'id', ut.id,
+        'name', ut.name)
+      ) as tags
+    FROM purchase p 
+    JOIN purchase_tag pt ON pt.purchase_id = p.id
+    JOIN user_tag ut ON pt.tag_id = ut.id
+    WHERE p.user_id = $1
+    GROUP BY p.id
     loop
         return next res;
     end loop;
