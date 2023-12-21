@@ -77,12 +77,17 @@ begin
 end;
 $$ LANGUAGE 'plpgsql';
 
+-- TODO: add purchase tag ids param
 -- ADD NEW PURCHASE
 CREATE OR REPLACE FUNCTION create_purchase(
   user_id VARCHAR(100),
  	name VARCHAR (100),
 	price DECIMAL,
-	currency VARCHAR (3),
+  currency VARCHAR (3),
+  tagIds INTEGER[],
+  discount DECIMAL default null,
+  unit varchar(20) default null,
+  quantity DECIMAL deafult null,
 	description VARCHAR (255) default null
 ) returns purchase_type AS $$
 
