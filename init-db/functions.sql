@@ -33,7 +33,8 @@ begin
     SELECT c.id, c.status, c.name, c.description, c.start_date, c.end_date,
     json_agg(json_build_object(
       'status', cd.status, 
-      'date', cd.date) ORDER BY cd.date DESC
+      'date', cd.date,
+      'id', cd.id) ORDER BY cd.date DESC
     ) AS days
     FROM challenge c JOIN challenge_day cd ON c.id = cd.challenge_id
     GROUP BY c.id
