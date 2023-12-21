@@ -72,14 +72,14 @@ CREATE OR REPLACE FUNCTION create_purchase_tag(
 declare
   res purch_tag_type;
 begin
-  INSERT INTO purchase_tag (user_id, name) VALUES ($1, $2) returning * into res;
+  INSERT INTO purchase_tag as pt (user_id, name) VALUES ($1, $2) returning pt.id, pt.name into res;
   return res;
 end;
 $$ LANGUAGE 'plpgsql';
 
 -- ADD NEW PURCHASE
 CREATE OR REPLACE FUNCTION create_purchase(
-  	user_id VARCHAR(100),
+  user_id VARCHAR(100),
  	name VARCHAR (100),
 	price DECIMAL,
 	currency VARCHAR (3),

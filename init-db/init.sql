@@ -52,7 +52,6 @@ CREATE TYPE ch_day_type AS (
 
 CREATE TYPE purch_tag_type AS (
   id INT,
-  userid VARCHAR(100),
   name VARCHAR(100)
 );
 
