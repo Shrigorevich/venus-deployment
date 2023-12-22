@@ -30,6 +30,9 @@ CREATE TABLE IF NOT EXISTS purchase (
   name VARCHAR(144) NOT NULL,
   description VARCHAR(250),
   price DECIMAL NOT NULL,
+  unit varchar(20),
+  quantity DECIMAL DEFAULT 0,
+  discount DECIMAL DEFAULT 0,
   currency VARCHAR(3)
 );
 
