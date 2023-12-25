@@ -65,10 +65,12 @@ CREATE TYPE user_tag_type AS (
 
 CREATE TYPE purchase_type AS (
   id uuid,
-  userid VARCHAR (100),
   name VARCHAR (100),
   price DECIMAL, 
+  discount DECIMAL,
   currency VARCHAR(3),
+  unit VARCHAR(20),
+  quantity DECIMAL,
   description VARCHAR (255),
   tags JSON
 );
