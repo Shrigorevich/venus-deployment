@@ -3,7 +3,7 @@ version: "3.8"
 services:
   venus-api:
     container_name: venus-api
-    image: venus-api:dev
+    image: shrigorevich/venus-api:dev
     restart: unless-stopped
     ports:
       - "3999:80"
