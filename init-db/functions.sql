@@ -1,3 +1,36 @@
+CREATE TYPE ch_type AS (
+	id uuid, 
+	status int,
+	name varchar(144),
+	description varchar(255),
+	startdate DATE,
+	enddate DATE,
+	days JSON
+);
+
+CREATE TYPE ch_day_type AS (
+  id uuid, 
+  status int,
+  date DATE
+);
+
+CREATE TYPE user_tag_type AS (
+  id INT,
+  name VARCHAR(100)
+);
+
+CREATE TYPE purchase_type AS (
+  id uuid,
+  name VARCHAR (100),
+  price DECIMAL, 
+  discount DECIMAL,
+  currency VARCHAR(3),
+  unit VARCHAR(20),
+  quantity DECIMAL,
+  description VARCHAR (255),
+  tags JSON
+);
+
 -- CREATE NEW CHALLENGE FOR USER
 CREATE OR REPLACE FUNCTION create_challenge(
 	user_id VARCHAR(100),
@@ -67,10 +100,10 @@ $$ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION create_user_tag(
   user_id VARCHAR(100),
   name VARCHAR (100)
-) returns purch_tag_type AS $$
+) returns user_tag_type AS $$
 
 declare
-  res purch_tag_type;
+  res user_tag_type;
 begin
   INSERT INTO user_tag as ut (user_id, name) VALUES ($1, $2) returning ut.id, ut.name into res;
   return res;
@@ -105,17 +138,19 @@ begin
 		INSERT INTO purchase_tag(tag_id, purchase_id) values (t_id, p_id);
 	END LOOP;
 	
-	SELECT p.id, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+  SELECT p.id, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+    COALESCE(
       json_agg(json_build_object(
-        'id', ut.id,
-        'name', ut.name)
-      ) as tags
-	INTO res
-    FROM purchase p 
-    JOIN purchase_tag pt ON pt.purchase_id = p.id
-    JOIN user_tag ut ON pt.tag_id = ut.id
-    WHERE p.user_id = $1 and p.id = p_id
-    GROUP BY p.id;
+      'id', ut.id,
+      'name', ut.name)
+      ) FILTER (WHERE ut.id IS NOT NULL), '[]'::JSON
+    ) as tags
+  INTO res
+	FROM purchase p 
+	LEFT JOIN purchase_tag pt ON pt.purchase_id = p.id
+	LEFT JOIN user_tag ut ON pt.tag_id = ut.id
+	WHERE p.user_id = $1 and p.id = p_id
+	GROUP BY p.id;
 	
 	return res;
 end;

@@ -42,36 +42,3 @@ CREATE TABLE IF NOT EXISTS purchase_tag (
   purchase_id uuid references purchase (id) ON UPDATE CASCADE ON DELETE CASCADE NOT NULL
 );
 
-CREATE TYPE ch_type AS (
-	id uuid, 
-	status int,
-	name varchar(144),
-	description varchar(255),
-	startdate DATE,
-	enddate DATE,
-	days JSON
-);
-
-CREATE TYPE ch_day_type AS (
-  id uuid, 
-  status int,
-  date DATE
-);
-
-CREATE TYPE user_tag_type AS (
-  id INT,
-  name VARCHAR(100)
-);
-
-CREATE TYPE purchase_type AS (
-  id uuid,
-  name VARCHAR (100),
-  price DECIMAL, 
-  discount DECIMAL,
-  currency VARCHAR(3),
-  unit VARCHAR(20),
-  quantity DECIMAL,
-  description VARCHAR (255),
-  tags JSON
-);
-
