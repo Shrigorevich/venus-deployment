@@ -1,10 +1,19 @@
 version: "3.8"
 
 services:
+  venus-api:
+    container_name: venus-api
+    image: venus-api:dev
+    restart: unless-stopped
+    ports:
+      - "3999:80"
+    env_file:
+      - venus.env
+
   postgres-api:
     container_name: postgres-api
     image: postgres:16.1
-    restart: always
+    restart: unless-stopped
     ports:
       - "5432:5432"
     volumes:

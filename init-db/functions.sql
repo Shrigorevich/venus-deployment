@@ -165,19 +165,20 @@ declare
   res purchase_type;
 begin
 	for res in
-		SELECT p.id, p.name, p.price, p.currency, p.description,
-      json_agg(json_build_object(
+		SELECT p.id, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+      COALESCE(
+        json_agg(json_build_object(
         'id', ut.id,
         'name', ut.name)
+        ) FILTER (WHERE ut.id IS NOT NULL), '[]'::JSON
       ) as tags
     FROM purchase p 
-    JOIN purchase_tag pt ON pt.purchase_id = p.id
-    JOIN user_tag ut ON pt.tag_id = ut.id
+    LEFT JOIN purchase_tag pt ON pt.purchase_id = p.id
+    LEFT JOIN user_tag ut ON pt.tag_id = ut.id
     WHERE p.user_id = $1
     GROUP BY p.id
     loop
         return next res;
     end loop;
-
 end;
 $$ LANGUAGE 'plpgsql';
