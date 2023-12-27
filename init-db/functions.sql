@@ -156,6 +156,51 @@ begin
 end;
 $$ LANGUAGE 'plpgsql';
 
+-- UPDATE PURCHASE
+CREATE OR REPLACE FUNCTION update_purchase(
+	userid VARCHAR(100),
+  purchaseid uuid,
+ 	n_name VARCHAR (100),
+	n_price DECIMAL,
+	n_currency VARCHAR (3),
+	n_discount DECIMAL default null,
+	n_unit varchar(20) default null,
+	n_quantity DECIMAL default null,
+	n_description VARCHAR (255) default null
+) returns purchase_type AS $$
+
+declare
+  res purchase_type;
+begin
+	
+  UPDATE purchase SET
+    name = $3,
+    price = $4,
+    currency = $5,
+    discount = $6,
+    unit = $7,
+    quantity = $8,
+    description = $9
+  WHERE user_id = $1 and id = $2;
+	
+  SELECT p.id, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+    COALESCE(
+      json_agg(json_build_object(
+      'id', ut.id,
+      'name', ut.name)
+      ) FILTER (WHERE ut.id IS NOT NULL), '[]'::JSON
+    ) as tags
+  INTO res
+	FROM purchase p 
+	LEFT JOIN purchase_tag pt ON pt.purchase_id = p.id
+	LEFT JOIN user_tag ut ON pt.tag_id = ut.id
+	WHERE p.user_id = $1 and p.id = $2
+	GROUP BY p.id;
+	
+	return res;
+end;
+$$ LANGUAGE 'plpgsql';
+
 -- GET PURCHASES BY user_id
 CREATE OR REPLACE FUNCTION get_purchases(
   	user_id VARCHAR(100)
@@ -180,5 +225,24 @@ begin
     loop
         return next res;
     end loop;
+end;
+$$ LANGUAGE 'plpgsql';
+
+-- UPDATE PURCHASE TAGS
+CREATE OR REPLACE FUNCTION update_purchase_tags(
+    purchaseid uuid,
+    tag_ids INTEGER ARRAY
+) returns void AS $$
+
+declare
+  tag_id INTEGER;
+begin
+	DELETE FROM purchase_tag WHERE purchase_id = $1;
+
+  FOREACH tag_id IN ARRAY $2
+	LOOP
+		INSERT INTO purchase_tag(tag_id, purchase_id) values (tag_id, $1);
+	END LOOP;
+
 end;
 $$ LANGUAGE 'plpgsql';
