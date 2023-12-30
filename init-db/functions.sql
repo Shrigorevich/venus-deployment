@@ -21,6 +21,7 @@ CREATE TYPE user_tag_type AS (
 
 CREATE TYPE purchase_type AS (
   id uuid,
+  date DATE,
   name VARCHAR (100),
   price DECIMAL, 
   discount DECIMAL,
@@ -113,6 +114,7 @@ $$ LANGUAGE 'plpgsql';
 -- ADD NEW PURCHASE
 CREATE OR REPLACE FUNCTION create_purchase(
 	user_id VARCHAR(100),
+  date DATE NOT NULL,
  	name VARCHAR (100),
 	price DECIMAL,
 	currency VARCHAR (3),
@@ -129,8 +131,8 @@ declare
   t_id integer;
 begin
 	INSERT INTO purchase AS p 
-		(user_id, name, price, currency, discount, unit, quantity, description)
-		VALUES ($1, $2, $3, $4, $6, $7, $8, $9) 
+		(user_id, date, name, price, currency, discount, unit, quantity, description)
+		VALUES ($1, $2, $3, $4, $6, $7, $8, $9, $10) 
 		returning id into p_id;
 	
 	FOREACH t_id IN ARRAY $5
@@ -138,7 +140,7 @@ begin
 		INSERT INTO purchase_tag(tag_id, purchase_id) values (t_id, p_id);
 	END LOOP;
 	
-  SELECT p.id, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+  SELECT p.id, p.date, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
     COALESCE(
       json_agg(json_build_object(
       'id', ut.id,
@@ -160,13 +162,14 @@ $$ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION update_purchase(
 	userid VARCHAR(100),
   purchaseid uuid,
+  n_date DATE,
  	n_name VARCHAR (100),
 	n_price DECIMAL,
 	n_currency VARCHAR (3),
 	n_discount DECIMAL default null,
 	n_unit varchar(20) default null,
 	n_quantity DECIMAL default null,
-	n_description VARCHAR (255) default null
+	n_description VARCHAR (255) default null,
 ) returns purchase_type AS $$
 
 declare
@@ -174,16 +177,17 @@ declare
 begin
 	
   UPDATE purchase SET
-    name = $3,
-    price = $4,
-    currency = $5,
-    discount = $6,
-    unit = $7,
-    quantity = $8,
-    description = $9
+    date = $3
+    name = $4,
+    price = $5,
+    currency = $6,
+    discount = $7,
+    unit = $8,
+    quantity = $9,
+    description = $10
   WHERE user_id = $1 and id = $2;
 	
-  SELECT p.id, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+  SELECT p.id, p.date, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
     COALESCE(
       json_agg(json_build_object(
       'id', ut.id,
@@ -210,7 +214,7 @@ declare
   res purchase_type;
 begin
 	for res in
-		SELECT p.id, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+		SELECT p.id, p.date, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
       COALESCE(
         json_agg(json_build_object(
         'id', ut.id,

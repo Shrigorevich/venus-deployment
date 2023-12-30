@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS user_tag (
 
 CREATE TABLE IF NOT EXISTS purchase (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  date DATE NOT NULL,
   user_id VARCHAR(100) NOT NULL,
   name VARCHAR(144) NOT NULL,
   description VARCHAR(250),
