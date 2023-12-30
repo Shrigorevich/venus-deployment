@@ -114,7 +114,7 @@ $$ LANGUAGE 'plpgsql';
 -- ADD NEW PURCHASE
 CREATE OR REPLACE FUNCTION create_purchase(
 	user_id VARCHAR(100),
-  date DATE NOT NULL,
+  date DATE,
  	name VARCHAR (100),
 	price DECIMAL,
 	currency VARCHAR (3),
@@ -132,10 +132,10 @@ declare
 begin
 	INSERT INTO purchase AS p 
 		(user_id, date, name, price, currency, discount, unit, quantity, description)
-		VALUES ($1, $2, $3, $4, $6, $7, $8, $9, $10) 
+		VALUES ($1, $2, $3, $4, $5, $7, $8, $9, $10) 
 		returning id into p_id;
 	
-	FOREACH t_id IN ARRAY $5
+	FOREACH t_id IN ARRAY $6
 	LOOP
 		INSERT INTO purchase_tag(tag_id, purchase_id) values (t_id, p_id);
 	END LOOP;
@@ -169,7 +169,7 @@ CREATE OR REPLACE FUNCTION update_purchase(
 	n_discount DECIMAL default null,
 	n_unit varchar(20) default null,
 	n_quantity DECIMAL default null,
-	n_description VARCHAR (255) default null,
+	n_description VARCHAR (255) default null
 ) returns purchase_type AS $$
 
 declare
@@ -177,7 +177,7 @@ declare
 begin
 	
   UPDATE purchase SET
-    date = $3
+    date = $3,
     name = $4,
     price = $5,
     currency = $6,
