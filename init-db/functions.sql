@@ -25,10 +25,12 @@ CREATE TYPE purchase_type AS (
   name VARCHAR (100),
   price DECIMAL, 
   discount DECIMAL,
-  currency VARCHAR(3),
   unit VARCHAR(20),
   quantity DECIMAL,
   description VARCHAR (255),
+  currencyId INTEGER, 
+  currencyCode VARCHAR (3),
+  currencyName VARCHAR (144),
   tags JSON
 );
 
@@ -117,9 +119,9 @@ CREATE OR REPLACE FUNCTION create_purchase(
   date DATE,
  	name VARCHAR (100),
 	price DECIMAL,
-	currency VARCHAR (3),
+	currency_id INTEGER,
 	tag_ids INTEGER ARRAY,
-	discount DECIMAL default null,
+	discount DECIMAL default 0,
 	unit varchar(20) default null,
 	quantity DECIMAL default null,
 	description VARCHAR (255) default null
@@ -131,7 +133,7 @@ declare
   t_id integer;
 begin
 	INSERT INTO purchase AS p 
-		(user_id, date, name, price, currency, discount, unit, quantity, description)
+		(user_id, date, name, price, currency_id, discount, unit, quantity, description)
 		VALUES ($1, $2, $3, $4, $5, $7, $8, $9, $10) 
 		returning id into p_id;
 	
@@ -140,7 +142,8 @@ begin
 		INSERT INTO purchase_tag(tag_id, purchase_id) values (t_id, p_id);
 	END LOOP;
 	
-  SELECT p.id, p.date, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+  SELECT p.id, p.date, p.name, p.price, p.discount, p.unit, p.quantity, p.description, 
+    c.id as currencyId, c.code as currencyCode, c.name as currencyName,
     COALESCE(
       json_agg(json_build_object(
       'id', ut.id,
@@ -151,6 +154,7 @@ begin
 	FROM purchase p 
 	LEFT JOIN purchase_tag pt ON pt.purchase_id = p.id
 	LEFT JOIN user_tag ut ON pt.tag_id = ut.id
+  LEFT JOIN currency c ON c.id = $5
 	WHERE p.user_id = $1 and p.id = p_id
 	GROUP BY p.id;
 	

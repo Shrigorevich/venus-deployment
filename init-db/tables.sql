@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS purchase_tag (
 
 CREATE TABLE IF NOT EXISTS budget (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id VARCHAR(100) NOT NULL,
   name VARCHAR(144) NOT NULL,
   amount DECIMAL DEFAULT 1,
   period INT NOT NULL,
