@@ -25,12 +25,10 @@ CREATE TYPE purchase_type AS (
   name VARCHAR (100),
   price DECIMAL, 
   discount DECIMAL,
-  unit VARCHAR(20),
+  unitId INT,
   quantity DECIMAL,
   description VARCHAR (255),
-  currencyId INTEGER, 
-  currencyCode VARCHAR (3),
-  currencyName VARCHAR (144),
+  currencyId INTEGER,
   tags JSON
 );
 
@@ -122,7 +120,7 @@ CREATE OR REPLACE FUNCTION create_purchase(
 	currency_id INTEGER,
 	tag_ids INTEGER ARRAY,
 	discount DECIMAL default 0,
-	unit varchar(20) default null,
+	unit_id INT default null,
 	quantity DECIMAL default null,
 	description VARCHAR (255) default null
 ) returns purchase_type AS $$
@@ -133,7 +131,7 @@ declare
   t_id integer;
 begin
 	INSERT INTO purchase AS p 
-		(user_id, date, name, price, currency_id, discount, unit, quantity, description)
+		(user_id, date, name, price, currency_id, discount, unit_id, quantity, description)
 		VALUES ($1, $2, $3, $4, $5, $7, $8, $9, $10) 
 		returning id into p_id;
 	
@@ -142,19 +140,17 @@ begin
 		INSERT INTO purchase_tag(tag_id, purchase_id) values (t_id, p_id);
 	END LOOP;
 	
-  SELECT p.id, p.date, p.name, p.price, p.discount, p.unit, p.quantity, p.description, 
-    c.id as currencyId, c.code as currencyCode, c.name as currencyName,
+  SELECT p.id, p.date, p.name, p.price, p.discount, p.unit_id as unitId, p.quantity, p.description, p.currency_id as currencyId,
     COALESCE(
       json_agg(json_build_object(
-      'id', ut.id,
-      'name', ut.name)
-      ) FILTER (WHERE ut.id IS NOT NULL), '[]'::JSON
+      'id', t.id,
+      'name', t.name)
+      ) FILTER (WHERE t.id IS NOT NULL), '[]'::JSON
     ) as tags
   INTO res
 	FROM purchase p 
 	LEFT JOIN purchase_tag pt ON pt.purchase_id = p.id
-	LEFT JOIN user_tag ut ON pt.tag_id = ut.id
-  LEFT JOIN currency c ON c.id = $5
+	LEFT JOIN tag t ON pt.tag_id = t.id
 	WHERE p.user_id = $1 and p.id = p_id
 	GROUP BY p.id;
 	
@@ -169,9 +165,9 @@ CREATE OR REPLACE FUNCTION update_purchase(
   n_date DATE,
  	n_name VARCHAR (100),
 	n_price DECIMAL,
-	n_currency VARCHAR (3),
+	n_currency_id INT,
 	n_discount DECIMAL default null,
-	n_unit varchar(20) default null,
+	n_unit_id INT default null,
 	n_quantity DECIMAL default null,
 	n_description VARCHAR (255) default null
 ) returns purchase_type AS $$
@@ -184,24 +180,24 @@ begin
     date = $3,
     name = $4,
     price = $5,
-    currency = $6,
+    currency_id = $6,
     discount = $7,
-    unit = $8,
+    unit_id = $8,
     quantity = $9,
     description = $10
   WHERE user_id = $1 and id = $2;
 	
-  SELECT p.id, p.date, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+  SELECT p.id, p.date, p.name, p.price, p.discount, p.unit_id as unitId, p.quantity, p.description, p.currency_id as currencyId, 
     COALESCE(
       json_agg(json_build_object(
-      'id', ut.id,
-      'name', ut.name)
-      ) FILTER (WHERE ut.id IS NOT NULL), '[]'::JSON
+      'id', t.id,
+      'name', t.name)
+      ) FILTER (WHERE t.id IS NOT NULL), '[]'::JSON
     ) as tags
   INTO res
 	FROM purchase p 
 	LEFT JOIN purchase_tag pt ON pt.purchase_id = p.id
-	LEFT JOIN user_tag ut ON pt.tag_id = ut.id
+	LEFT JOIN tag t ON pt.tag_id = t.id
 	WHERE p.user_id = $1 and p.id = $2
 	GROUP BY p.id;
 	
@@ -218,16 +214,16 @@ declare
   res purchase_type;
 begin
 	for res in
-		SELECT p.id, p.date, p.name, p.price, p.discount, p.currency, p.unit, p.quantity, p.description, 
+		SELECT p.id, p.date, p.name, p.price, p.discount, p.unit_id as unitId, p.quantity, p.description, p.currency_id as currencyId, 
       COALESCE(
         json_agg(json_build_object(
-        'id', ut.id,
-        'name', ut.name)
-        ) FILTER (WHERE ut.id IS NOT NULL), '[]'::JSON
+        'id', t.id,
+        'name', t.name)
+        ) FILTER (WHERE t.id IS NOT NULL), '[]'::JSON
       ) as tags
     FROM purchase p 
     LEFT JOIN purchase_tag pt ON pt.purchase_id = p.id
-    LEFT JOIN user_tag ut ON pt.tag_id = ut.id
+    LEFT JOIN tag t ON pt.tag_id = t.id
     WHERE p.user_id = $1
     GROUP BY p.id
     loop
